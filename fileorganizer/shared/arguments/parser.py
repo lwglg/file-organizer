@@ -4,6 +4,10 @@ import sys
 import argparse
 import textwrap
 
+__all__ = [
+    "ArgumentParser",
+]
+
 
 # Adapted from https://gist.github.com/fonic/fe6cade2e1b9eaf3401cc732f48aeebd
 class ArgumentParser(argparse.ArgumentParser):
@@ -14,7 +18,7 @@ class ArgumentParser(argparse.ArgumentParser):
         # At least self.positionals + self.options need to be initialized before calling
         # __init__() of parent class, as argparse.ArgumentParser.__init__() defaults to
         # 'add_help=True', which results in call of add_argument("-h", "--help", ...)
-        self.program = { key: kwargs[key] for key in kwargs }
+        self.program = {key: kwargs[key] for key in kwargs}
         self.positionals = []
         self.options = []
         self.width = width
@@ -23,11 +27,13 @@ class ArgumentParser(argparse.ArgumentParser):
 
     def add_argument(self, *args, **kwargs):
         super(ArgumentParser, self).add_argument(*args, **kwargs)
-        argument = { key: kwargs[key] for key in kwargs }
+        argument = {key: kwargs[key] for key in kwargs}
 
         # Positional: argument with only one name not starting with '-' provided as
         # positional argument to method -or- no name and only a 'dest=' argument
-        if (len(args) == 0 or (len(args) == 1 and isinstance(args[0], str) and not args[0].startswith("-"))):
+        if len(args) == 0 or (
+            len(args) == 1 and isinstance(args[0], str) and not args[0].startswith("-")
+        ):
             argument["name"] = args[0] if (len(args) > 0) else argument["dest"]
             self.positionals.append(argument)
 
@@ -35,54 +41,71 @@ class ArgumentParser(argparse.ArgumentParser):
 
         # Option: argument with one or more flags starting with '-' provided as
         # positional arguments to method
-        argument["flags"] = [ item for item in args ]
+        argument["flags"] = [item for item in args]
         self.options.append(argument)
 
     def format_usage(self):
-		# Use user-defined usage message
-        if ("usage" in self.program):
+        # Use user-defined usage message
+        if "usage" in self.program:
             prefix = "Usage: "
             wrapper = textwrap.TextWrapper(width=self.width)
             wrapper.initial_indent = prefix
             wrapper.subsequent_indent = len(prefix) * " "
 
-            if (self.program["usage"] == "" or str.isspace(self.program["usage"])):
+            if self.program["usage"] == "" or str.isspace(self.program["usage"]):
                 return wrapper.fill("No usage information available")
             return wrapper.fill(self.program["usage"])
 
         # Generate usage message from known arguments
         output = []
 
-		# Determine what to display left and right, determine string length for left
-		# and right
+        # Determine what to display left and right, determine string length for left
+        # and right
         left1 = "Usage: "
-        left2 = self.program["prog"] \
-            if ("prog" in self.program \
-                and self.program["prog"] != "" \
-                and not str.isspace(self.program["prog"])) \
-            else os.path.basename(sys.argv[0]) \
-                if (len(sys.argv[0]) > 0 \
-                    and sys.argv[0] != "" \
-                    and not str.isspace(sys.argv[0])) else "script.py"
+        left2 = (
+            self.program["prog"]
+            if (
+                "prog" in self.program
+                and self.program["prog"] != ""
+                and not str.isspace(self.program["prog"])
+            )
+            else os.path.basename(sys.argv[0])
+            if (
+                len(sys.argv[0]) > 0
+                and sys.argv[0] != ""
+                and not str.isspace(sys.argv[0])
+            )
+            else "script.py"
+        )
 
         llen = len(left1) + len(left2)
         arglist = []
 
         for option in self.options:
             flags = str.join("|", option["flags"])
-            
-            arglist += [ "[%s]" % flags \
-                if ("action" in option \
-                    and (option["action"] == "store_true" \
-                    or option["action"] == "store_false")) \
-                else "[%s %s]" % (flags, option["metavar"]) \
-                    if ("metavar" in option) \
-                    else "[%s %s]" % (flags, option["dest"].upper()) \
-                        if ("dest" in option) \
-                        else "[%s]" % flags ]
+
+            arglist += [
+                "[%s]" % flags
+                if (
+                    "action" in option
+                    and (
+                        option["action"] == "store_true"
+                        or option["action"] == "store_false"
+                    )
+                )
+                else "[%s %s]" % (flags, option["metavar"])
+                if ("metavar" in option)
+                else "[%s %s]" % (flags, option["dest"].upper())
+                if ("dest" in option)
+                else "[%s]" % flags
+            ]
 
         for positional in self.positionals:
-            arglist += [ "%s" % positional["metavar"] if ("metavar" in positional) else "%s" % positional["name"] ]
+            arglist += [
+                "%s" % positional["metavar"]
+                if ("metavar" in positional)
+                else "%s" % positional["name"]
+            ]
         right = str.join(" ", arglist)
         rlen = len(right)
 
@@ -93,11 +116,11 @@ class ArgumentParser(argparse.ArgumentParser):
         lwidth = llen
         rwidth = max(0, self.width - lwidth - 1)
 
-        if (lwidth > int(self.width / 2) - 1):
+        if lwidth > int(self.width / 2) - 1:
             lwidth = max(0, int(self.width / 2) - 1)
             rwidth = int(self.width / 2)
 
-        #outtmp = "%-" + str(lwidth) + "s %-" + str(rwidth) + "s"
+        # outtmp = "%-" + str(lwidth) + "s %-" + str(rwidth) + "s"
         outtmp = "%-" + str(lwidth) + "s %s"
 
         # Wrap text for left and right parts, split into separate lines
@@ -125,7 +148,11 @@ class ArgumentParser(argparse.ArgumentParser):
         output.append(self.format_usage())
 
         # Add description to output if present
-        if ("description" in self.program and self.program["description"] != "" and not str.isspace(self.program["description"])):
+        if (
+            "description" in self.program
+            and self.program["description"] != ""
+            and not str.isspace(self.program["description"])
+        ):
             output.append("")
             output.append(dewrapper.fill(self.program["description"]))
 
@@ -133,46 +160,61 @@ class ArgumentParser(argparse.ArgumentParser):
         # determine max string lengths for left and right
         lmaxlen = rmaxlen = 0
         for positional in self.positionals:
-            positional["left"] = positional["metavar"] if ("metavar" in positional) else positional["name"]
+            positional["left"] = (
+                positional["metavar"]
+                if ("metavar" in positional)
+                else positional["name"]
+            )
 
         for option in self.options:
-            if ("action" in option and (option["action"] == "store_true" or option["action"] == "store_false")):
+            if "action" in option and (
+                option["action"] == "store_true" or option["action"] == "store_false"
+            ):
                 option["left"] = str.join(", ", option["flags"])
             else:
-                option["left"] = str.join(", ", [
-                    "%s %s" % (item, option["metavar"])
-                    if ("metavar" in option)
-                    else "%s %s" % (item, option["dest"].upper())
-                    if ("dest" in option) else item
-                    for item in option["flags"]
-                ])
+                option["left"] = str.join(
+                    ", ",
+                    [
+                        "%s %s" % (item, option["metavar"])
+                        if ("metavar" in option)
+                        else "%s %s" % (item, option["dest"].upper())
+                        if ("dest" in option)
+                        else item
+                        for item in option["flags"]
+                    ],
+                )
 
         for argument in self.positionals + self.options:
-            if ("help" in argument
+            if (
+                "help" in argument
                 and argument["help"] != ""
                 and not str.isspace(argument["help"])
                 and "default" in argument
                 and argument["default"] != argparse.SUPPRESS
             ):
-                argument["right"] = argument["help"] + " " + (
-                    "(default: '%s')" % argument["default"] \
-                        if isinstance(argument["default"], str) \
+                argument["right"] = (
+                    argument["help"]
+                    + " "
+                    + (
+                        "(default: '%s')" % argument["default"]
+                        if isinstance(argument["default"], str)
                         else "(default: %s)" % str(argument["default"])
                     )
-            elif ("help" in argument
+                )
+            elif (
+                "help" in argument
                 and argument["help"] != ""
                 and not str.isspace(argument["help"])
             ):
                 argument["right"] = argument["help"]
-            elif (
-                "default" in argument
-                and argument["default"] != argparse.SUPPRESS
-            ):
-                argument["right"] = "Default: '%s'" % argument["default"] \
-                    if isinstance(argument["default"], str) \
+            elif "default" in argument and argument["default"] != argparse.SUPPRESS:
+                argument["right"] = (
+                    "Default: '%s'" % argument["default"]
+                    if isinstance(argument["default"], str)
                     else "Default: %s" % str(argument["default"])
+                )
             else:
-                #argument["right"] = ""
+                # argument["right"] = ""
                 argument["right"] = "No description available"
             lmaxlen = max(lmaxlen, len(argument["left"]))
             rmaxlen = max(rmaxlen, len(argument["right"]))
@@ -184,7 +226,7 @@ class ArgumentParser(argparse.ArgumentParser):
         lwidth = lmaxlen
         rwidth = max(0, self.width - lwidth - 4)
 
-        if (lwidth > int(self.width / 2) - 4):
+        if lwidth > int(self.width / 2) - 4:
             lwidth = max(0, int(self.width / 2) - 4)
             rwidth = int(self.width / 2)
 
@@ -199,18 +241,24 @@ class ArgumentParser(argparse.ArgumentParser):
             argument["right"] = rwrapper.wrap(argument["right"])
 
         # Add positional arguments to output
-        if (len(self.positionals) > 0):
+        if len(self.positionals) > 0:
             output.append("")
             output.append("Positionals:")
 
             for positional in self.positionals:
-                for i in range(0, max(len(positional["left"]), len(positional["right"]))):
-                    left = positional["left"][i] if (i < len(positional["left"])) else ""
-                    right = positional["right"][i] if (i < len(positional["right"])) else ""
+                for i in range(
+                    0, max(len(positional["left"]), len(positional["right"]))
+                ):
+                    left = (
+                        positional["left"][i] if (i < len(positional["left"])) else ""
+                    )
+                    right = (
+                        positional["right"][i] if (i < len(positional["right"])) else ""
+                    )
                     output.append(outtmp % (left, right))
 
         # Add option arguments to output
-        if (len(self.options) > 0):
+        if len(self.options) > 0:
             output.append("")
             output.append("Options:")
 
@@ -221,8 +269,9 @@ class ArgumentParser(argparse.ArgumentParser):
                     output.append(outtmp % (left, right))
 
         # Add epilog to output if present
-        if ("epilog" in self.program \
-            and self.program["epilog"] != "" \
+        if (
+            "epilog" in self.program
+            and self.program["epilog"] != ""
             and not str.isspace(self.program["epilog"])
         ):
             output.append("")
@@ -234,7 +283,7 @@ class ArgumentParser(argparse.ArgumentParser):
     # Method redefined as format_usage() does not return a trailing newline like
     # the original does
     def print_usage(self, file=None):
-        if (file == None):
+        if file == None:
             file = sys.stdout
 
         file.write(self.format_usage() + "\n")
@@ -243,7 +292,7 @@ class ArgumentParser(argparse.ArgumentParser):
     # Method redefined as format_help() does not return a trailing newline like
     # the original does
     def print_help(self, file=None):
-        if (file == None):
+        if file == None:
             file = sys.stdout
 
         file.write(self.format_help() + "\n")

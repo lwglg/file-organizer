@@ -5,6 +5,9 @@ from typing import Optional
 from .text import Text
 
 
+__all__ = ["Logger"]
+
+
 class Logger:
     @classmethod
     def log(cls, text: str, text_format: Optional[str] = Text.CWHITE) -> None:
@@ -13,11 +16,11 @@ class Logger:
     @classmethod
     def success(cls, text: str) -> None:
         Logger.log(text, Text.CGREEN)
-    
+
     @classmethod
     def warning(cls, text: str) -> None:
         Logger.log(text, Text.CYELLOW)
-    
+
     @classmethod
     def danger(cls, text: str) -> None:
         Logger.log(text, Text.CRED)
