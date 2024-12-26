@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "file-organizer"
+version = "0.1.0"
+description = "Esse script organiza arquivos em uma pasta em subpastas separadas de acordo com a extensão do arquivo."
+authors = ["Guilherme Lima Gonçalves <lwglguilherme@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+ffmpeg-python = "^0.2.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
