@@ -6,6 +6,9 @@ __all__ = [
 ]
 
 
+type TGenerator = Generator[Any, None, None]
+
+
 def is_empty_no_side_effects(
     generator: Generator[Any, None, None]
 ) -> Tuple[Generator[Any, None, None], bool]:
@@ -14,7 +17,7 @@ def is_empty_no_side_effects(
     try:
         item = next(generator)
 
-        def my_generator():
+        def my_generator() -> TGenerator:
             yield item
             yield from generator
 

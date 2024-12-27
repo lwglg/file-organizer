@@ -1,7 +1,3 @@
-# Base imports
-from typing import Optional
-
-
 __all__ = ["Text"]
 
 
@@ -57,7 +53,7 @@ class Text:
     CWHITEBG2 = "\33[107m"
 
     @classmethod
-    def format_text(cls, text: str, text_format: Optional[str] = CWHITE) -> str:
+    def format_text(cls, text: str, text_format: str) -> str:
         return text_format + text + cls.CEND
 
     @classmethod
@@ -74,4 +70,8 @@ class Text:
 
     @classmethod
     def blink(cls, text: str) -> str:
-        return cls.format_text(text, cls.BLINK)
+        return cls.format_text(text, cls.CBLINK)
+
+    @classmethod
+    def blink2(cls, text: str) -> str:
+        return cls.format_text(text, cls.CBLINK2)

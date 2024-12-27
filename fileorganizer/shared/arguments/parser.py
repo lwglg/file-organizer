@@ -44,7 +44,7 @@ class ArgumentParser(argparse.ArgumentParser):
         argument["flags"] = [item for item in args]
         self.options.append(argument)
 
-    def format_usage(self):
+    def format_usage(self) -> str:
         # Use user-defined usage message
         if "usage" in self.program:
             prefix = "Usage: "
@@ -54,6 +54,7 @@ class ArgumentParser(argparse.ArgumentParser):
 
             if self.program["usage"] == "" or str.isspace(self.program["usage"]):
                 return wrapper.fill("No usage information available")
+
             return wrapper.fill(self.program["usage"])
 
         # Generate usage message from known arguments
@@ -140,7 +141,7 @@ class ArgumentParser(argparse.ArgumentParser):
         # Return output as single string
         return str.join("\n", output)
 
-    def format_help(self):
+    def format_help(self) -> str:
         output = []
         dewrapper = textwrap.TextWrapper(width=self.width)
 
@@ -282,7 +283,7 @@ class ArgumentParser(argparse.ArgumentParser):
 
     # Method redefined as format_usage() does not return a trailing newline like
     # the original does
-    def print_usage(self, file=None):
+    def print_usage(self, file: str | None = None) -> None:
         if file == None:
             file = sys.stdout
 
@@ -291,7 +292,7 @@ class ArgumentParser(argparse.ArgumentParser):
 
     # Method redefined as format_help() does not return a trailing newline like
     # the original does
-    def print_help(self, file=None):
+    def print_help(self, file: str | None = None) -> None:
         if file == None:
             file = sys.stdout
 

@@ -10,7 +10,7 @@ __all__ = ["Logger"]
 
 class Logger:
     @classmethod
-    def log(cls, text: str, text_format: Optional[str] = Text.CWHITE) -> None:
+    def log(cls, text: str, text_format: str = Text.CWHITE) -> None:
         print(Text.format_text(text, text_format))
 
     @classmethod

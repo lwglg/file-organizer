@@ -1,5 +1,5 @@
 # Base imports
-from typing import List, Tuple
+from typing import Any, List, Tuple
 from enum import Enum
 
 __all__ = [
@@ -11,7 +11,7 @@ class BaseEnum(Enum):
     """Base enumeration class with auxiliary methods."""
 
     @classmethod
-    def choices(cls) -> List[Tuple[str]]:
+    def choices(cls) -> List[Tuple[str, Any]]:
         return [(item.name, item.value) for item in cls]
 
     @classmethod
