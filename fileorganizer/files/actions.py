@@ -1,13 +1,11 @@
-# Base imports
 import os
 from typing import Dict, List, Optional
 
-# Project imports
-from fileorganizer.shared.logging import Logger
 from fileorganizer.shared.helpers import is_empty_no_side_effects
-from .helpers import list_files, get_file_type
-from .definitions import FileType
+from fileorganizer.shared.logging import Logger
 
+from .definitions import FileType
+from .helpers import get_file_type, list_files
 
 __all__ = [
     "map_file_types_to_paths",
@@ -45,20 +43,30 @@ def associate_file_to_new_folder(
     os.rename(os.path.join(base_path, file_name), new_path)
 
 
-def create_folder_structure(folder_paths: List[str]) -> None:
+def create_folder_structure(
+    folder_paths: List[str], file_type: str | None = None
+) -> None:
     """Check if subdirectories exist and create them if they don't."""
-    for folder_path in folder_paths:
-        if not os.path.isdir(folder_path):
-            os.mkdir(folder_path)
+
+    def mkdir_if_not_exist(path: str) -> None:
+        if not os.path.isdir(path):
+            os.mkdir(path)
+
+    # If the file type is informed, filter only the path related to the type
+    if file_type != None and file_type != "":
+        sanitized_type = file_type.lower().strip()
+        filtered = [item for item in folder_paths if sanitized_type in item]
+
+        if len(filtered) == 1:
+            mkdir_if_not_exist(filtered[0])
+    else:
+        for folder_path in folder_paths:
+            mkdir_if_not_exist(folder_path)
 
 
 def organize_files(base_path: str, file_type: Optional[str] = None) -> None:
     """Organizes files in a given directory into corresponding
     subdirectories based on file extension."""
-    folder_paths = map_file_types_to_paths(base_path)
-
-    create_folder_structure(folder_paths.values())
-
     file_generator, is_empty = is_empty_no_side_effects(
         list_files(base_path, file_type)
     )
@@ -66,6 +74,9 @@ def organize_files(base_path: str, file_type: Optional[str] = None) -> None:
     if is_empty:
         Logger.warning("No files to be organized. No action taken")
         return
+
+    folder_paths = map_file_types_to_paths(base_path)
+    create_folder_structure(list(folder_paths.values()), file_type)
 
     for file_name in file_generator:
         associate_file_to_new_folder(base_path, file_name, folder_paths)
