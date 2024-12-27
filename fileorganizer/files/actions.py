@@ -15,15 +15,28 @@ __all__ = [
 ]
 
 
-def map_file_types_to_paths(base_path: str) -> Dict[str, str]:
+def map_file_types_to_paths(
+    base_path: str, file_type: str | None = None
+) -> Dict[str, str]:
     """Maps the file types to the destination folder path."""
-    return {
+    file_type_folder_map = {
         FileType.AUDIO: os.path.join(base_path, "audios"),
         FileType.DOCUMENT: os.path.join(base_path, "documents"),
         FileType.IMAGE: os.path.join(base_path, "images"),
         FileType.VIDEO: os.path.join(base_path, "videos"),
         FileType.SCRIPT: os.path.join(base_path, "scripts"),
         FileType.UNKNOWN: os.path.join(base_path, "others"),
+    }
+
+    if file_type == None:
+        return file_type_folder_map
+
+    sanitized_type = file_type.lower().strip()
+
+    return {
+        ftype: folder_name
+        for ftype, folder_name in file_type_folder_map
+        if ftype == sanitized_type
     }
 
 
@@ -72,10 +85,10 @@ def organize_files(base_path: str, file_type: Optional[str] = None) -> None:
     )
 
     if is_empty:
-        Logger.warning("No files to be organized. No action taken")
+        Logger.warning("No files to be organized. No action taken.")
         return
 
-    folder_paths = map_file_types_to_paths(base_path)
+    folder_paths = map_file_types_to_paths(base_path, file_type)
     create_folder_structure(list(folder_paths.values()), file_type)
 
     for file_name in file_generator:

@@ -2,13 +2,27 @@ import os
 from json import loads
 from pathlib import Path
 from subprocess import check_output
-from typing import Generator, List, Optional, Sequence, Tuple
+from typing import (
+    Dict,
+    Generator,
+    Optional,
+    Sequence,
+    Tuple,
+)
 
-from .definitions import (AudioFile, DocumentFile, FileType, ImageFile,
-                          ScriptFile, VideoFile)
+from fileorganizer.shared.logging import Logger
+
+from .definitions import (
+    AudioFile,
+    DocumentFile,
+    FileType,
+    ImageFile,
+    ScriptFile,
+    VideoFile,
+)
 
 
-def has_streams(file_path: str, codec_type: str) -> bool:
+def extract_streams_by_codec(file_path: str, codec_type: str) -> Tuple[bool, int]:
     """Check each stream to see if at least one has an "audio" type codec.
     Please note that an audio stream may be present but silent,
     in which case this will still return True."""
@@ -33,10 +47,10 @@ def has_streams(file_path: str, codec_type: str) -> bool:
         audio_streams = list(
             filter((lambda x: x.get("codec_type") == codec_type), streams)
         )
+        num = len(audio_streams)
+        return num > 0, num
 
-        return len(audio_streams) > 0
-
-    return False
+    return False, 0
 
 
 def get_file_extension(file: str) -> Optional[str]:
@@ -48,25 +62,38 @@ def get_file_type(file_name: str, base_path: str) -> str:
     """Extracts the FileType from the extension, given the file name."""
     extension = get_file_extension(file_name)
 
-    def inclusion_test(ext: str | None, ext_list: Sequence[str]) -> bool:
+    file_formats_types_map: Dict[str, Sequence[str]] = {
+        FileType.AUDIO: AudioFile.values(),
+        FileType.DOCUMENT: DocumentFile.values(),
+        FileType.IMAGE: ImageFile.values(),
+        FileType.VIDEO: VideoFile.values(),
+        FileType.SCRIPT: ScriptFile.values(),
+    }
+
+    def is_ext_known(ext: str | None, ext_list: Sequence[str]) -> bool:
         return ext != None and ext in ext_list
 
-    file_formats_types_map: List[Tuple[Sequence[str], str]] = [
-        (AudioFile.values(), FileType.AUDIO),
-        (DocumentFile.values(), FileType.DOCUMENT),
-        (ImageFile.values(), FileType.IMAGE),
-        (VideoFile.values(), FileType.VIDEO),
-        (ScriptFile.values(), FileType.SCRIPT),
-    ]
-
-    for extensions, file_type in file_formats_types_map:
-        if inclusion_test(extension, extensions):
+    # Check if each file extension is supported by the organizer
+    for file_type, extensions in file_formats_types_map.items():
+        if is_ext_known(extension, extensions):
             file_path = os.path.join(base_path, file_name)
 
-            # In order to disambiguate audio and video files with the same extension
-            if file_type == FileType.AUDIO and has_streams(file_path, FileType.VIDEO):
-                return FileType.VIDEO
+            # Disambiguate audio and video files with the same extension...
+            if file_type == FileType.AUDIO:
+                Logger.log(f"Checking if '{file_name}' has an audio stream...")
 
+                has_streams, num_streams = extract_streams_by_codec(
+                    file_path, FileType.VIDEO
+                )
+
+                if has_streams:
+                    Logger.warning(
+                        f"Audio file '{file_name}' has {num_streams} video streams! Categorized as {FileType.VIDEO}."
+                    )
+
+                    return FileType.VIDEO
+
+            # Otherwise, returns the extracted file type
             return file_type
 
     return FileType.UNKNOWN
