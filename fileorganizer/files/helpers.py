@@ -1,19 +1,11 @@
-# Base imports
 import os
-from typing import Generator, List, Optional
-from subprocess import check_output
-from pathlib import Path
 from json import loads
+from pathlib import Path
+from subprocess import check_output
+from typing import Generator, List, Optional, Sequence, Tuple
 
-# Project imports
-from .definitions import (
-    FileType,
-    AudioFile,
-    DocumentFile,
-    ImageFile,
-    VideoFile,
-    ScriptFile,
-)
+from .definitions import (AudioFile, DocumentFile, FileType, ImageFile,
+                          ScriptFile, VideoFile)
 
 
 def has_streams(file_path: str, codec_type: str) -> bool:
@@ -56,15 +48,15 @@ def get_file_type(file_name: str, base_path: str) -> str:
     """Extracts the FileType from the extension, given the file name."""
     extension = get_file_extension(file_name)
 
-    def inclusion_test(ext: str, ext_list: List[str]) -> bool:
-        return ext in ext_list
+    def inclusion_test(ext: str | None, ext_list: Sequence[str]) -> bool:
+        return ext != None and ext in ext_list
 
-    file_formats_types_map = [
-        [AudioFile.values(), FileType.AUDIO],
-        [DocumentFile.values(), FileType.DOCUMENT],
-        [ImageFile.values(), FileType.IMAGE],
-        [VideoFile.values(), FileType.VIDEO],
-        [ScriptFile.values(), FileType.SCRIPT],
+    file_formats_types_map: List[Tuple[Sequence[str], str]] = [
+        (AudioFile.values(), FileType.AUDIO),
+        (DocumentFile.values(), FileType.DOCUMENT),
+        (ImageFile.values(), FileType.IMAGE),
+        (VideoFile.values(), FileType.VIDEO),
+        (ScriptFile.values(), FileType.SCRIPT),
     ]
 
     for extensions, file_type in file_formats_types_map:

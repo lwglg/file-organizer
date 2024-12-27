@@ -1,6 +1,4 @@
-# Project imports
 from fileorganizer.shared.enums import BaseEnum
-
 
 __all__ = [
     "UnknownFile",
